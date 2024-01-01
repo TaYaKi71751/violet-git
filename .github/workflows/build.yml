@@ -136,17 +136,22 @@ jobs:
     needs: [ check_hash, ios-build, android-build ]
     steps:
       - uses: actions/download-artifact@v2
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
         with:
           name: ipa-build
           path: ./
       - uses: actions/download-artifact@v2
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
         with:
           name: apk-build
           path: ./      
       - run: find . -type f -name '*.apk'
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
       - run: find . -type f -name '*.ipa'
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
       - name: Release AppImage
         uses: marvinpinto/action-automatic-releases@latest
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
         with:
           title: latest-${{ needs.check_hash.outputs.after }}
           automatic_release_tag: latest-${{ needs.check_hash.outputs.after }}
