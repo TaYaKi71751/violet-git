@@ -40,6 +40,32 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
           TASK_NAME: Update dev_hash
 
+  check_version:
+    runs-on: ubuntu-latest
+    needs: [ check_hash ]
+    outputs:
+      appversion: ${{ steps.plain.outputs.appversion }}
+      appversion_tag: ${{ steps.tag.outputs.appversion }}
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          git clone https://github.com/project-violet/violet.git
+          cd violet
+          git checkout dev
+          cat pubspec.yaml | grep ^version | tr -d '\n' | tr -d '\r' | rev | cut -d ' ' -f1 | rev | sed -E 's/\+(.+)/\+${{ needs.check_hash.outputs.after }}/g' > ../appversion
+          cd ..
+      
+      - id: plain
+        run: echo "::set-output name=appversion::$(cat appversion | tr -d '\n' | tr -d '\r')"
+      - id: tag
+        run: echo "::set-output name=appversion::$(cat appversion | sed -E 's/\+/\-/g' | tr -d '\n' | tr -d '\r')"
+      # - uses: corcc/publish@node
+      #   # if: ${{ steps.before.outputs.hash != steps.after.outputs.hash }}
+      #   with:
+      #     TZ: 'Asia/Seoul'
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+      #     TASK_NAME: Update appversion
+
   ios-build:
     runs-on: macos-latest
     needs: [ check_hash ]
@@ -154,7 +180,7 @@ jobs:
       
   release:
     runs-on: ubuntu-latest
-    needs: [ check_hash, ios-build, android-build ]
+    needs: [ check_hash, ios-build, android-build, check_version ]
     steps:
       - uses: actions/download-artifact@v2
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || ( github.event.inputs.force-build-ios && github.event.inputs.force-release ) }}
@@ -174,8 +200,8 @@ jobs:
         uses: marvinpinto/action-automatic-releases@latest
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-release }}
         with:
-          title: latest-${{ needs.check_hash.outputs.after }}
-          automatic_release_tag: latest-${{ needs.check_hash.outputs.after }}
+          title: ${{ needs.check_version.outputs.appversion }}
+          automatic_release_tag: ${{ needs.check_version.appversion_tag }}
           prerelease: true
           draft: false
           files: |
@@ -184,15 +210,17 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
   update-version-info:
     runs-on: ubuntu-latest
-    needs: [ check_hash, android-build, ios-build, release ]
+    needs: [ check_hash, android-build, ios-build, release, check_version ]
     steps:
       - uses: actions/checkout@v2
       - run: |
           echo "${{ needs.check_hash.outputs.after }}" > release
+          echo "${{ needs.check_version.outputs.appversion }}" > appversion
+          echo "${{ needs.check_version.outputs.appversion_tag }}" > appversion_tag
         # if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
       - uses: corcc/publish@node
         # if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
         with:
           TZ: 'Asia/Seoul'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
-          TASK_NAME: Update release
+          TASK_NAME: Update version info
