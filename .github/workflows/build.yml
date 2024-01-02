@@ -175,11 +175,10 @@ jobs:
           cp ./build/app/outputs/apk/release/app-release.apk ./tmp/
           rm ./build/app/outputs/apk/release/app-release.apk
           cd ./tmp
-          unzip app-release.apk
-          rm app-release.apk
-          cp ../.git/$(cat ../.git/HEAD | tr -d '\n' | rev | cut -d ' ' -f1 | rev | tr -d '\n') ./HEAD
-          zip app-release *
-          cp app-release.zip ../build/app/outputs/apk/release/app-release.apk
+          unzip app-release.apk -d ./tmp
+          cp ../.git/$(cat ../.git/HEAD | tr -d '\n' | rev | cut -d ' ' -f1 | rev | tr -d '\n') ./tmp/HEAD
+          zip -r app-release.apk ./tmp
+          cp app-release.apk ../build/app/outputs/apk/release/app-release.apk
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android == 'true' }}
       - name: Upload APK
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android == 'true' }}
