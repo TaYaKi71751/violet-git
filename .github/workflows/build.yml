@@ -14,6 +14,10 @@ on:
   schedule:
     - cron: '30 * * * *'
   push:
+env:
+  target_owner: 'project-violet'
+  target_repository: 'violet'
+  target_ref: 'dev'
 
 jobs:
   check_hash:
@@ -26,9 +30,9 @@ jobs:
       - id: before
         run: echo "::set-output name=hash::$(cat dev_hash | tr -d '\n')"
       - run: |
-          git clone https://github.com/project-violet/violet.git
-          cd violet
-          git checkout dev
+          git clone https://github.com/${{ env.target_owner }}/${{ env.target_repository }}.git
+          cd ${{ env.target_repository }}
+          git checkout ${{ env.target_ref }}
           git rev-parse HEAD > ../dev_hash
           cd ..
       - id: after
@@ -49,9 +53,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
-          git clone https://github.com/project-violet/violet.git
-          cd violet
-          git checkout dev
+          git clone https://github.com/${{ env.target_owner }}/${{ env.target_repository }}.git
+          cd ${{ env.target_repository }}
+          git checkout ${{ env.target_ref }}
           cat pubspec.yaml | grep ^version | tr -d '\n' | tr -d '\r' | rev | cut -d ' ' -f1 | rev | sed -E 's/\+(.+)/\+${{ needs.check_hash.outputs.after }}/g' > ../appversion
           cd ..
       
@@ -72,7 +76,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          repository: 'project-violet/violet'
+          repository: "${{ env.target_owner }}/${{ env.target_repository }}"
+          ref: "${{ env.target_ref }}"
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-ios == 'true' }}
 
       - run: |
@@ -132,7 +137,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          repository: 'project-violet/violet'
+          repository: "${{ env.target_owner }}/${{ env.target_repository }}"
+          ref: "${{ env.target_ref }}"
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android == 'true' }}
 
       - run: |
