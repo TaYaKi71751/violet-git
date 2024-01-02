@@ -38,6 +38,12 @@ jobs:
         with:
           repository: 'project-violet/violet'
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+
+      - run: |
+          # Fix app version to hash
+          sed -i -E 's/^version: (.+)/version: latest-${{ needs.check_hash.outputs.after }}/g' pubspec.yaml
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+
       - uses: subosito/flutter-action@v2
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
         with:
@@ -91,6 +97,11 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: 'project-violet/violet'
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+
+      - run: |
+          # Fix app version to hash
+          sed -i -E 's/^version: (.+)/version: latest-${{ needs.check_hash.outputs.after }}/g' pubspec.yaml
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
           
       - uses: actions/setup-java@v1
