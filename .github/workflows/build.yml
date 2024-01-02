@@ -201,7 +201,7 @@ jobs:
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-release == 'true' }}
         with:
           title: ${{ needs.check_version.outputs.appversion }}
-          automatic_release_tag: "${{ needs.check_version.appversion_tag }}"
+          automatic_release_tag: "${{ needs.check_version.outputs.appversion_tag }}"
           prerelease: true
           draft: false
           files: |
