@@ -172,3 +172,16 @@ jobs:
             *.apk
             *.ipa
           repo_token: ${{ secrets.GITHUB_TOKEN }}
+  update-version-info:
+    runs-on: ubuntu-latest
+    needs: [ check_hash, android-build, ios-build, release ]
+    steps:
+      - run: |
+          echo "${{ needs.check_hash.outputs.after }}" > release
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+      - uses: corcc/publish@node
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        with:
+          TZ: 'Asia/Seoul'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          TASK_NAME: Update release
