@@ -148,17 +148,21 @@ jobs:
           node-version: 16
       - run: |
           # Add HEAD_REF to assets
-          cp ./.git/$(cat .git/HEAD | tr -d '\n' | rev | cut -d ' ' -f1 | rev | tr -d '\n') ./HEAD
+          cp ./.git/$(cat .git/HEAD | tr -d '\n' | rev | cut -d ' ' -f1 | rev | tr -d '\n') ./assets/HEAD
           pnpm i yaml
           node << EOF
             const yaml = require('yaml');
             const fs   = require('fs');
             try {
               var doc = yaml.parse(fs.readFileSync('./pubspec.yaml', 'utf8'));
-              doc.flutter.assets.push('HEAD');
+              doc.flutter.assets.push('assets/HEAD');
               console.log(yaml.stringify(doc));
-            }catch(e){}
+              fs.writeFileSync('./pubspec.yaml', yaml.stringify(doc));
+            }catch(e){console.log(e)}
           EOF
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android == 'true' }}
+      - run: |
+          cat ./pubspec.yaml
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android == 'true' }}
 
       - uses: actions/setup-java@v1
