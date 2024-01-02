@@ -216,7 +216,9 @@ jobs:
       - run: |
           echo "${{ needs.check_hash.outputs.after }}" > release
           echo "${{ needs.check_version.outputs.appversion }}" > appversion
+          echo "app: ${{ needs.check_version.outputs.appversion }}"
           echo "${{ needs.check_version.outputs.appversion_tag }}" > appversion_tag
+          echo "tag: ${{ needs.check_version.outputs.appversion_tag }}"
         # if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
       - uses: corcc/publish@node
         # if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
