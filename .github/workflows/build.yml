@@ -51,7 +51,7 @@ jobs:
 
       - run: |
           # Fix app version to hash
-          sed -i -E 's/^version: (.+)/version: latest-${{ needs.check_hash.outputs.after }}/g' pubspec.yaml
+          sed -i -E "s/$(cat pubspec.yaml | grep ^version | sed -E 's/\+/\\\+/g' | tr -d '\n' | tr -d '\r')/$(cat pubspec.yaml | grep ^version | sed -E 's/\+(.+)/\\\+${{ needs.check_hash.outputs.after }}/g' | tr -d '\n' | tr -d '\r')/g" pubspec.yaml
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-ios }}
 
       - uses: subosito/flutter-action@v2
@@ -111,7 +111,7 @@ jobs:
 
       - run: |
           # Fix app version to hash
-          sed -i -E 's/^version: (.+)/version: latest-${{ needs.check_hash.outputs.after }}/g' pubspec.yaml
+          sed -i -E "s/$(cat pubspec.yaml | grep ^version | sed -E 's/\+/\\\+/g' | tr -d '\n' | tr -d '\r')/$(cat pubspec.yaml | grep ^version | sed -E 's/\+(.+)/\\\+${{ needs.check_hash.outputs.after }}/g' | tr -d '\n' | tr -d '\r')/g" pubspec.yaml
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android }}
           
       - uses: actions/setup-java@v1
