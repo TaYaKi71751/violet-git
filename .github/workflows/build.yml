@@ -56,9 +56,9 @@ jobs:
           cd ..
       
       - id: plain
-        run: echo "::set-output name=appversion::$(cat appversion | tr -d '\n' | tr -d '\r')"
+        run: echo "::set-output name=appversion::$(cat appversion | tr -d '\n' | tr -d '\r' | tr -d ' ')"
       - id: tag
-        run: echo "::set-output name=appversion::$(cat appversion | sed -E 's/\+/\-/g' | tr -d '\n' | tr -d '\r')"
+        run: echo "::set-output name=appversion::$(cat appversion | sed -E 's/\+/\-/g' | tr -d '\n' | tr -d '\r' | tr -d ' ')"
       # - uses: corcc/publish@node
       #   # if: ${{ steps.before.outputs.hash != steps.after.outputs.hash }}
       #   with:
