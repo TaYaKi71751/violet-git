@@ -1,6 +1,16 @@
 name: CI
 on:
   workflow_dispatch:
+    inputs:
+      force-build-android:
+        type: boolean
+        default: true
+      force-build-ios:
+        type: boolean
+        default: true
+      force-release:
+        type: boolean
+        default: true
   schedule:
     - cron: '30 * * * *'
   push:
@@ -37,25 +47,25 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: 'project-violet/violet'
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-ios }}
 
       - run: |
           # Fix app version to hash
           sed -i -E 's/^version: (.+)/version: latest-${{ needs.check_hash.outputs.after }}/g' pubspec.yaml
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-ios }}
 
       - uses: subosito/flutter-action@v2
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-ios }}
         with:
           channel: 'stable'
           
       - uses: actions/setup-python@v2
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-ios }}
         with:
           python-version: '3.8'
           
       - name: Preprocess
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-ios }}
         run: | 
           cd lib/server
           wget -q ${{ secrets.SECRET_SALT }} || echo 'String getValid(String vToken) { return vToken; }' > salt.dart
@@ -64,7 +74,7 @@ jobs:
           python3 preprocess-ios.py
           
       - name: Podfile
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-ios }}
         run: |
           cd ios
           rm Podfile.lock
@@ -75,7 +85,7 @@ jobs:
           cd ..
           
       - name: Build
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-ios }}
         run: |
           flutter build ios --release --no-codesign
           mkdir -p Payload
@@ -84,7 +94,7 @@ jobs:
           mv Payload.zip Payload.ipa
           
       - name: Upload IPA
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-ios }}
         uses: actions/upload-artifact@v2
         with:
           name: ipa-build
@@ -97,31 +107,31 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: 'project-violet/violet'
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android }}
 
       - run: |
           # Fix app version to hash
           sed -i -E 's/^version: (.+)/version: latest-${{ needs.check_hash.outputs.after }}/g' pubspec.yaml
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android }}
           
       - uses: actions/setup-java@v1
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android }}
         with:
           java-version: '12.x'
           
       - uses: subosito/flutter-action@v1
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android }}
         with:
           # flutter-version: '2.5.2'
           channel: 'stable'
           
       - uses: actions/setup-python@v2
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android }}
         with:
           python-version: '3.8'
           
       - name: Preprocess
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android }}
         run: | 
           cd lib/server
           wget -q ${{ secrets.SECRET_SALT }} || echo 'String getValid(String vToken) { return vToken; }' > salt.dart
@@ -130,13 +140,13 @@ jobs:
           python3 preprocess-android.py
           
       - name: Build
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android }}
         run: |
           flutter clean
           flutter build apk --release
           
       - name: Upload APK
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android }}
         uses: actions/upload-artifact@v2
         with:
           name: apk-build
@@ -147,22 +157,22 @@ jobs:
     needs: [ check_hash, ios-build, android-build ]
     steps:
       - uses: actions/download-artifact@v2
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || ( github.event.inputs.force-build-ios && github.event.inputs.force-release ) }}
         with:
           name: ipa-build
           path: ./
       - uses: actions/download-artifact@v2
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || ( github.event.inputs.force-build-android && github.event.inputs.force-release ) }}
         with:
           name: apk-build
           path: ./      
       - run: find . -type f -name '*.apk'
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-release }}
       - run: find . -type f -name '*.ipa'
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-release }}
       - name: Release AppImage
         uses: marvinpinto/action-automatic-releases@latest
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-release }}
         with:
           title: latest-${{ needs.check_hash.outputs.after }}
           automatic_release_tag: latest-${{ needs.check_hash.outputs.after }}
