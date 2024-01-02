@@ -24,7 +24,7 @@ jobs:
       - id: after
         run: echo "::set-output name=hash::$(cat dev_hash | tr -d '\n')"
       - uses: corcc/publish@node
-        if: ${{ steps.before.outputs.hash != steps.after.outputs.hash }}
+        # if: ${{ steps.before.outputs.hash != steps.after.outputs.hash }}
         with:
           TZ: 'Asia/Seoul'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
@@ -178,9 +178,9 @@ jobs:
     steps:
       - run: |
           echo "${{ needs.check_hash.outputs.after }}" > release
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        # if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
       - uses: corcc/publish@node
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
+        # if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after }}
         with:
           TZ: 'Asia/Seoul'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
