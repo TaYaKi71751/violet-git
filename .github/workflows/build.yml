@@ -139,7 +139,28 @@ jobs:
           # Fix app version to hash
           sed -i -E "s/$(cat pubspec.yaml | grep ^version | sed -E 's/\+/\\\+/g' | tr -d '\n' | tr -d '\r')/$(cat pubspec.yaml | grep ^version | sed -E 's/\+(.+)/\\\+${{ needs.check_hash.outputs.after }}/g' | tr -d '\n' | tr -d '\r')/g" pubspec.yaml
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android == 'true' }}
-          
+      - uses: pnpm/action-setup@master
+        with:
+          version: latest
+      - uses: actions/setup-node@main
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android == 'true' }}
+        with:
+          node-version: 16
+      - run: |
+          # Add HEAD_REF to assets
+          cp ./.git/$(cat .git/HEAD | tr -d '\n' | rev | cut -d ' ' -f1 | rev | tr -d '\n') ./HEAD
+          pnpm i yaml
+          node << EOF
+            const yaml = require('yaml');
+            const fs   = require('fs');
+            try {
+              var doc = yaml.parse(fs.readFileSync('./pubspec.yaml', 'utf8'));
+              doc.flutter.assets.push('HEAD');
+              console.log(yaml.stringify(doc));
+            }catch(e){}
+          EOF
+        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android == 'true' }}
+
       - uses: actions/setup-java@v1
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android == 'true' }}
         with:
@@ -170,16 +191,6 @@ jobs:
         run: |
           flutter clean
           flutter build apk --release
-      - run: |
-          mkdir -p ./tmp
-          cp ./build/app/outputs/apk/release/app-release.apk ./tmp/
-          rm ./build/app/outputs/apk/release/app-release.apk
-          cd ./tmp
-          unzip app-release.apk -d ./tmp
-          cp ../.git/$(cat ../.git/HEAD | tr -d '\n' | rev | cut -d ' ' -f1 | rev | tr -d '\n') ./tmp/HEAD
-          zip -r app-release.apk ./tmp
-          cp app-release.apk ../build/app/outputs/apk/release/app-release.apk
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android == 'true' }}
       - name: Upload APK
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android == 'true' }}
         uses: actions/upload-artifact@v2
