@@ -4,9 +4,9 @@
 # Build.yml
 ```
 env:
-  target_owner: '<TARGET_USER_NAME_HERE>'
-  target_repository: '<TARGET_REPOSITORY_HERE>'
-  target_ref: '<TARGET_BRANCH_HERE>'
+  target_owner:      '<TARGET_USER_NAME_HERE>'    # default: 'project-violet'
+  target_repository: '<TARGET_REPOSITORY_HERE>'   # default: 'violet'
+  target_ref:        '<TARGET_BRANCH_HERE>'       # default: 'dev'
 ```
 
 # How to get hash from built apk
