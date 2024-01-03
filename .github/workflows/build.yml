@@ -55,7 +55,7 @@ jobs:
       - run: |
           git clone https://github.com/${{ env.target_owner }}/${{ env.target_repository }}.git
           cd ${{ env.target_repository }}
-          git checkout ${{ env.target_ref }}
+          git checkout ${{ needs.check_hash.outputs.after }}
           cat pubspec.yaml | grep ^version | tr -d '\n' | tr -d '\r' | rev | cut -d ' ' -f1 | rev | sed -E 's/\+(.+)/\+${{ needs.check_hash.outputs.after }}/g' > ../appversion
           cd ..
       
@@ -77,7 +77,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: "${{ env.target_owner }}/${{ env.target_repository }}"
-          ref: "${{ env.target_ref }}"
+          ref: "${{ needs.check_hash.outputs.after }}"
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-ios == 'true' }}
 
       - run: |
@@ -138,7 +138,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: "${{ env.target_owner }}/${{ env.target_repository }}"
-          ref: "${{ env.target_ref }}"
+          ref: "${{ needs.check_hash.outputs.after }}"
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android == 'true' }}
 
       - run: |
