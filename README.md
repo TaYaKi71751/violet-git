@@ -12,6 +12,6 @@ env:
 # How to get hash from built apk
 > It's in assets/HEAD
 ```
-unzip app-release.apk -d apk-extract
+unzip app-release.apk -d apk-extract              # extract apk file
 cat apk-extract/assets/flutter_assets/assets/HEAD # hash here
 ```
