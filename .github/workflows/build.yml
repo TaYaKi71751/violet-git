@@ -154,7 +154,7 @@ jobs:
           node-version: 16
       - run: |
           # Add HEAD_REF to assets
-          cp ./.git/$(cat .git/HEAD | tr -d '\n' | rev | cut -d ' ' -f1 | rev | tr -d '\n') ./assets/HEAD
+          echo $(cat .git/HEAD | tr -d '\n' | rev | cut -d ' ' -f1 | rev | tr -d '\n') >> ./assets/HEAD
           pnpm i yaml
           node << EOF
             const yaml = require('yaml');
