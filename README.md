@@ -1,6 +1,9 @@
 #  violet-git
 >  It builds from repository and build
 
+# You can use with 
+[violet-manager](https://github.com/TaYaKi71751/violet-manager)
+
 #  Build.yml
 ```
 env:
