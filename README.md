@@ -1,6 +1,9 @@
 #  violet-git
 >  It builds from repository and build
 
+# Actions Permission
+> Go Repository > Settings > Actions > General > Workflow permisssions > Read and write
+
 # You can use with 
 [violet-manager](https://github.com/TaYaKi71751/violet-manager)
 
