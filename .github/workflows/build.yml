@@ -80,10 +80,10 @@ jobs:
           ref: "${{ needs.check_hash.outputs.after }}"
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-ios == 'true' }}
 
-      - run: |
-          # Fix app version to hash
-          sed -i -E "s/$(cat pubspec.yaml | grep ^version | sed -E 's/\+/\\\+/g' | tr -d '\n' | tr -d '\r')/$(cat pubspec.yaml | grep ^version | sed -E 's/\+(.+)/\\\+${{ needs.check_hash.outputs.after }}/g' | tr -d '\n' | tr -d '\r')/g" pubspec.yaml
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-ios == 'true' }}
+          #      - run: |
+          #           Fix app version to hash
+          #           sed -i -E "s/$(cat pubspec.yaml | grep ^version | sed -E 's/\+/\\\+/g' | tr -d '\n' | tr -d '\r')/$(cat pubspec.yaml | grep ^version | sed -E 's/\+(.+)/\\\+${{ needs.check_hash.outputs.after }}/g' | tr -d '\n' | tr -d '\r')/g" pubspec.yaml
+          #       if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-ios == 'true' }}
 
       - uses: subosito/flutter-action@v2
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-ios == 'true' }}
@@ -141,10 +141,10 @@ jobs:
           ref: "${{ needs.check_hash.outputs.after }}"
         if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android == 'true' }}
 
-      - run: |
-          # Fix app version to hash
-          sed -i -E "s/$(cat pubspec.yaml | grep ^version | sed -E 's/\+/\\\+/g' | tr -d '\n' | tr -d '\r')/$(cat pubspec.yaml | grep ^version | sed -E 's/\+(.+)/\\\+${{ needs.check_hash.outputs.after }}/g' | tr -d '\n' | tr -d '\r')/g" pubspec.yaml
-        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android == 'true' }}
+          #      - run: |
+          #          # Fix app version to hash
+          #          sed -i -E "s/$(cat pubspec.yaml | grep ^version | sed -E 's/\+/\\\+/g' | tr -d '\n' | tr -d '\r')/$(cat pubspec.yaml | grep ^version | sed -E 's/\+(.+)/\\\+${{ needs.check_hash.outputs.after }}/g' | tr -d '\n' | tr -d '\r')/g" pubspec.yaml
+          #        if: ${{ needs.check_hash.outputs.before != needs.check_hash.outputs.after || github.event.inputs.force-build-android == 'true' }}
       - uses: pnpm/action-setup@master
         with:
           version: latest
